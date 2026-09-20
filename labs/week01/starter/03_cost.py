@@ -75,6 +75,15 @@ def main() -> int:
     #   models. What does this measurement tell you about switching between
     #   them inside one request, and what would you do instead?
 
+    subprocess.run(["ollama", "stop", SMALL.name])
+    first_reply, first_secs = timed(client, SHORT, SMALL.name)
+    second_reply, second_secs = timed(client, SHORT, SMALL.name)
+
+    print(f"\nfirst call: {first_secs:.2f}s")
+    print(f"second call: {second_secs:.2f}s")
+
+    
+
     # TODO 8. Estimate what a real evaluation run would cost hosted.
     #
     #   In week 10 you build a golden set and run it. Assume 200 cases, each
@@ -90,6 +99,20 @@ def main() -> int:
     #
     #   Label them as estimates. They are not measurements and the price
     #   list is dated {PRICE_DATE}.
+
+    input_tokens = rows[1]["prompt_tokens"]
+    output_tokens = rows[1]["completion_tokens"]
+    cases = 200 * 7 * 14
+
+    small = estimate(input_tokens, output_tokens, tier="small")
+    large = estimate(input_tokens, output_tokens, tier="large")
+
+    small_total = (small.input_cost + small.output_cost) * cases
+    large_total = (large.input_cost + large.output_cost) * cases
+
+    print(f"Estimated small-tier cost: €{small_total:.2f}")
+    print(f"Estimated large-tier cost: €{large_total:.2f}")
+
 
     write_json("artifacts/week01_cost.json",
                {"rows": rows, "price_list_date": PRICE_DATE})

@@ -1,5 +1,5 @@
 # Decisions
-
+# TODO 5
 cell                       distinct   chars   median s
 ------------------------------------------------------
 closed_short|t00               1/12      10       0.17
@@ -30,6 +30,15 @@ c. An exact-string unit test would pass consistently on closed_short|t00, closed
 
 
 ---------------------------------------------------------------------------------
+# TODO 6
 Model outputs can be repeatable for some prompts and variable for others, so we cannot assume that rerunning a prompt will produce the same output.
 
+
+---------------------------------------------------------------------------------
+# TODO 7
+The first call took 2.65s, while the identical second call took only 0.06s. This shows that loading a model into memory adds significant latency. Since the system will use two different models, I would avoid switching between them inside a single request when possible and instead keep the required model loaded or structure the request to minimize model switching.
+
+---------------------------------------------------------------------------------
+# TODO 8
+For 200 cases run every night for 14 weeks, the estimated cost is €3.28 on the small tier and €244.14 on the large tier. These are estimates, not measurements, based on the 2026-08-10 price list. I would use the small tier for nightly evaluation and the large tier before a release, because nightly evaluation runs frequently and the large-tier estimate is much higher, while a release check can justify the additional cost. I would not use the same tier for both because their cost and evaluation requirements are different.
 
