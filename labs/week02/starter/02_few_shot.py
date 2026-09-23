@@ -61,7 +61,23 @@ def few_shot_block(n: int = 4) -> str:
     stop copying verbatim, and the field that scored perfectly zero-shot
     will get worse. Look at the recording if you want to see that happen.
     """
-    raise NotImplementedError("TODO 5: build the example block")
+    examples = [
+        EXAMPLE_POOL[2],  
+        EXAMPLE_POOL[4],  
+        EXAMPLE_POOL[5],  
+    ]
+
+    example_block = ""
+
+    for doc, gold in examples:
+        example_block += (
+            f"category: {gold.category}\n"
+            f"urgency: {gold.urgency}\n"
+            f"due_date: {gold.due_date}\n"
+            f'quote: "{doc.text}"\n\n'
+        )
+
+    return example_block
 
 
 SYSTEM_FEW_SHOT = SYSTEM_ZERO_SHOT + "\n"   # + few_shot_block(), once written
