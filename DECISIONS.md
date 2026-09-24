@@ -83,7 +83,7 @@ A 200-case golden set, at the token cost of my long case:
 | small tier | 0.0335€ | 3.28€ |
 | large tier | 2.4912€ | 244.14€ |
 
-Estimates against the price list dated [date in `project/prices.py`], not
+Estimates against the price list dated [ 2026-08-10 ], not
 measurements. Running locally, my actual monetary cost was zero.
 
 Which tier I would run nightly, which I would run before a release, and why
@@ -94,3 +94,79 @@ a release, because nightly evaluation runs frequently and the large tier
 estimate is much higher, while a release check can justify the additional
 cost. I would not use the same tier for both because their cost and
 evaluation requirements are different.]
+
+
+# Week 2: a structured-output extractor, measured
+## Week 2
+
+**Run conditions.** model: [ 
+aNAME                       ID              SIZE      MODIFIED
+qwen3-vl:4b                1343d82ebee3    3.3 GB    4 days ago
+qwen2.5:7b                 845dbda0ea48    4.7 GB    4 days ago
+nomic-embed-text:latest    0a109f422b47    274 MB    4 days ago
+qwen3:4b-instruct          0edcdef34593    2.5 GB    4 days ago] | temperature: 0.0 | prompt version: [ week02-zero-shot-v1 ] |
+served locally | date: [ 2026-09-24 ] | scored on: [the recording / my own machine]
+
+### 1. The output contract
+
+The conventions I chose, and why:
+
+- due_date, when the message states no date: [ None ]
+- due_date, when the message states only a relative expression: [ None ]
+- quote, and what "verbatim" means in my scorer: [ quote must be a short, exact substring copied from the input message, do not paraphrase, normalize, or alter wording]
+- what my scorer does with a record that failed validation: [ The record is rejected/marked as a validation failure and is not scored as a valid prediction.]
+
+[The last one matters because a validation failure counts as wrong for every field, preventing the scorer from hiding failures and making the model appear better as it gets worse.]
+
+### 2. Zero-shot, per field
+
+| field | correct | of |
+| category | 7 | 10 |
+| urgency | 10 | 10 |
+| due_date | 6 | 10 |
+| quote | 10 | 10 |
+| invalid records | 0 | 10 |
+
+My prediction, written before block 3: examples will help most on [ due_date ]
+because [ the examples show dates in ISO format ].
+
+### 3. Few-shot
+
+Examples chosen, and the job each one does:
+
+| example | why it is in the block | field it should move |
+| EX-03 | defines the boundary between hardware and facilities and also demonstrates a German message with an ISO-formatted date.| category, due_date |
+| EX-05 | demonstrates a French message and a clearly stated calendar deadline, showing how a non-English message with a specific date should be handled.| due_date |
+| EX-06 | demonstrates facilities issue with no stated calendar date, reinforcing that the due date should be None when no specific date is given. | due_date |
+
+| field | zero-shot | few-shot | move |
+| category | 7/10 | 6/10 | -1 |
+| urgency | 10/10 | 10/10 | +0 |
+| due_date | 6/10 | 8/10 | +2 |
+| quote | 10/10 | 10/10 | +0 |
+
+### 4. What got worse
+
+[Category got worse, dropping from 7/10 in zero-shot to 6/10 in few-shot.]
+
+### 5. What the examples cost
+
+- extra input tokens per call: [ 200 ]
+- per thousand calls: [ 200000 ]
+- estimated euros per thousand calls on the small tier: [ 200,000 / 1,000,000 × 0.20€ = 0.04€ ], against the price list dated [ 2026-08-10 ]. Estimate, not a measurement.
+
+### 6. Ship it or not
+
+[I would keep the few-shot variant because it improved due_date from 6/10 to 8/10, while urgency and quote stayed at 10/10. However, I would not be confident that it is better overall because category dropped from 7/10 to 6/10, and ten records is too small of a sample. I would change my mind after testing on a larger set of records and seeing whether the improvements hold consistently.]
+
+### Sensitivity variant
+
+Variant assigned: [ reordered ]. What I changed: [ the order of the examples ]. What moved: [ nothing ].
+
+[nothing moved]
+
+### The gold set
+
+Ten cases written to `artifacts/goldset.json`, tagged by language.
+
+One thing my scorer cannot currently detect: My scorer cannot extract the correct date itself. It only checks whether the date extracted by the model matches the expected date.
