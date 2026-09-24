@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import argparse
 
-from documents import DOCS, GOLD
+from documents import DOCS, GOLD, EXAMPLE_POOL
 from extractor import SYSTEM_ZERO_SHOT, get_client, run_variant
 from scoring import compare
 
@@ -62,7 +62,23 @@ def build_system(variant: str) -> str:
                    needed to attribute it. Week 13 asks who a system works
                    for, and this is what it costs to answer with evidence.
     """
-    raise NotImplementedError("TODO 8: build the variant")
+    examples = [
+            EXAMPLE_POOL[5],  
+            EXAMPLE_POOL[2],  
+            EXAMPLE_POOL[4],  
+        ]
+    
+    example_block = ""
+
+    for doc, gold in examples:
+        example_block += (
+            f"category: {gold.category}\n"
+            f"urgency: {gold.urgency}\n"
+            f"due_date: {gold.due_date}\n"
+            f'quote: "{doc.text}"\n\n'
+        )
+    
+    return SYSTEM_ZERO_SHOT + "\n" + example_block
 
 
 def main() -> int:
