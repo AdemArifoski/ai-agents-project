@@ -170,3 +170,129 @@ Variant assigned: [ reordered ]. What I changed: [ the order of the examples ]. 
 Ten cases written to `artifacts/goldset.json`, tagged by language.
 
 One thing my scorer cannot currently detect: My scorer cannot extract the correct date itself. It only checks whether the date extracted by the model matches the expected date.
+
+
+
+## Week 3
+
+**Run conditions.** classifier model: [ qwen3:4b-instruct ] | answering model: [ qwen3:4b-instruct ] |
+temperature: 0.0 | served locally | date: [2026-09-30] | scored on: [my own machine]
+
+### 1. The five route definitions
+
+| route | definition, one sentence, in terms of what the help desk must do |
+| request |  Log and act on something that is broken, missing, or needed. |
+| info | Provide information about a service, procedure, opening time, or form, without taking an action on the sender's behalf. |
+| status | Follow up on something already reported and provide or obtain its current status. | 
+| complaint | Address dissatisfaction with the service, how something was handled, or how long it took. |
+| other | Do not handle it as help desk business, direct it elsewhere or decline to provide advice or action the help desk cannot give. |
+
+My convention for the four ambiguous queries:
+
+[When a message both reports an unresolved problem and complains about how it was handled, I label it complaint. When a message follows up on a previous report without expressing dissatisfaction, I label it status. When a message asks about a procedure while also reporting a fault, I label it request.]
+
+Do my definitions match the ones in `queries.py`? [yes]
+
+### 2. The policy layer
+
+Before choosing a threshold, the confidence values I saw were: min [ 0.00 ],
+max [ 1.00 ], [ 4 ] distinct values across 24 queries.
+
+- confidence floor: [ None ], because [ because the confidence distribution was not useful
+  for separating uncertain decisions: 23 of 24 decisions had confidence
+  0.95 or higher, and the 0.00 value came from the invalid-decision fallback.]
+- evidence check: [I apply the safe default when the evidence span is not
+  found verbatim in the message], because [ the router is required to provide
+  evidence copied character for character from the message.]
+- safe default: [ info ], because that specialist [ only provides information and
+  does not log, act, or make commitments on the sender's behalf]
+
+How often each check fired: below_threshold [ 0 ], evidence_not_verbatim [ 0 ],
+invalid_decision [ 1 ].
+
+[The confidence threshold fired zero times because no confidence value fell
+below a configured floor. The distribution therefore shows that confidence
+was not a useful threshold signal in this run. The invalid-decision check
+fired once and was handled by the safe default.]
+
+### 3. Route accuracy
+
+| route | correct | of |
+| request | 6 | 7 |
+| info | 5 | 5 |
+| status | 4 | 4 |
+| complaint | 4 | 4 |
+| other | 2 | 4 |
+
+Overall [ 21 ]/24. Excluding the four ambiguous: [ 17 ]/20.
+
+Confusion pairs, with direction:
+
+| gold | applied | count |
+| request | complaint | 1 |
+| other   | info      | 1 ¦
+¦ other   | complaint | 1 ¦
+
+The route carrying most of the error is [ other ]. The fix is [a definition], because [the two errors from other were sent to different routes rather than consistently into one specialist, so the evidence does not show that one specialist prompt is the main problem.].
+
+### 4. What routing cost
+
+- monolith: [ 9341 ] tokens over 24 queries
+- router: [ 12462 ] tokens over 24 queries
+- the classifying call alone: [ 8383 ] tokens, which is [ 67 ] per cent of the
+  routed total
+
+I predicted that share would be [ I did not write down a numerical prediction before measuring ] before measuring it.
+
+[If the share surprised you, say why. The classifier's prompt carries every
+route definition on every call, and the specialists carry only their own.]
+
+### 5. What routing bought
+
+One thing a specialist can be forbidden to do that the monolith cannot be
+given:
+
+[A specialist can be explicitly forbidden from handling work outside its
+route. For example, the info specialist can be instructed to provide
+information only and not log, act on, or make commitments about a service
+request. The monolith has to contain instructions for all five routes in
+one prompt.]
+
+Would I ship the router: [  No, not yet ]. Evidence: [ The router achieved 21/24
+(87.5%) route accuracy, but it also cost 12462 tokens compared with 9341
+for the monolith, and the classifier alone used 67% of the routed tokens.
+The other route was also only 2/4 correct ]. What would change my mind: [ better route accuracy without a increase in routing cost, and
+evidence that the other cases and other routing errors are handled
+reliably].
+
+### 6. Stretch variant
+
+Variant assigned: [ model ]. Result: [ 
+model: qwen3:4b-instruct
+route accuracy: 21/24 (87.5%)
+excluding ambiguous: 17/20 (85.0%)
+evidence verbatim: 24/24
+confidence: min 0.00 max 1.00 distinct 4
+resident memory: 3.9 GB
+
+model: qwen2.5:7b
+route accuracy: 17/24 (70.8%)
+excluding ambiguous: 16/20 (80.0%)
+evidence verbatim: 20/24
+confidence: min 0.95 max 1.00 distinct 2
+resident memory: 5.0 GB ].
+
+[The smaller model won on route accuracy, evidence verbatim, and required
+less resident memory in this run. This suggests that a larger model did
+not automatically improve this routing task. The result is specific to
+these models, prompts, and 24 test cases.]
+
+
+### The gold set
+
+`artifacts/goldset.json` now holds [ 34 ] cases: 10 from week 2 and 24 added
+today, with the four ambiguous ones tagged.
+
+### Deferred
+
+[Anything you did not get to, and why.]
