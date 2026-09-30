@@ -22,6 +22,7 @@ from project.fixtures import ReplayClient, load_or_reference
 from project.models import BASE_URL, API_KEY, SMALL
 from project.trace import TraceRecorder, local_conditions, write_json
 
+
 LAB = "week03_routing_and_composition"
 
 
@@ -153,6 +154,41 @@ def main() -> int:
     #   understand best.
     #
     #   Skip any case_id already in the file, so this is safe to re-run.
+
+    goldset, gold_source = load_or_reference(
+        "goldset.json",
+        lab="week03",
+    )
+    print(f"gold set loaded from: {gold_source}")
+
+    goldset = GoldSet.model_validate(goldset)
+
+    existing_ids = {case.case_id for case in goldset.cases}
+
+    for q in QUERIES:
+        if q.id in existing_ids:
+            continue
+
+        tags = [q.lang, q.route]
+
+        if q.ambiguous:
+            tags.append("ambiguous")
+
+        goldset.cases.append(
+            GoldCase(
+                case_id=q.id,
+                week_added=3,
+                question=q.text,
+                expected={"route": q.route},
+                expected_behavior=f"routes the message to {q.route}",
+                slice_tags=tags,
+            )
+        )
+
+    write_json(
+        "artifacts/goldset.json",
+        goldset.model_dump(),
+    )
 
     # TODO 7. Answer four questions in DECISIONS.md. The comparison is the
     # deliverable, not the two running systems.

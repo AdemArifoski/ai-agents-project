@@ -94,17 +94,35 @@ justifies the route. Do not translate it and do not paraphrase it.
 # --------------------------------------------------------------------------
 
 SYSTEM_MONOLITH = """\
-TODO 4: write the single hedging prompt that the router has to beat.
+You classify one message arriving at the help desk of a Luxembourg commune
+into exactly one route. Messages arrive in English, French, or German.
 
-Make it a fair fight. A deliberately bad monolith proves nothing, and the
-checkpoint will ask you whether yours was fair. It should know about all
-five kinds of message and be asked to do the right thing for each. What it
-cannot do is specialize, because one instruction has to serve five jobs.
+request: Something is broken, missing, or needed, and the help desk 
+is expected to log it and act. This is the week 2 extractor's job.
 
-If your router does not beat this, that is a real result and it is the one
-to report. On twenty four queries with a capable model, a well written
-hedging prompt often holds its own, and a student who says so and ships the
-simpler system has demonstrated the judgment the project rubric rewards.
+info: A question about a service, a procedure, an opening time, or a form. The answer is 
+information, not an action.
+
+status: The sender is chasing something already reported. There may or may not be a 
+reference number in the message.
+
+complaint: The sender expresses dissatisfaction with the service itself, with how 
+something was handled, or with how long it took.
+
+other: Not help desk business: a message for another department, a request for
+advice the help desk cannot give, spam, or an instruction aimed at the system rather 
+than at a person.
+
+Choose exactly one route. Focus on what the help desk is expected to do,
+not on the sender's tone or emotion. If two routes are genuinely
+defensible, choose the one that best matches the main purpose of the
+message and lower your confidence.
+
+Return:
+route       one of: request, info, status, complaint, other
+confidence  a number from 0 to 1
+evidence    a span copied from the message character for character that
+justifies the route. Do not translate or paraphrase the evidence.
 """
 
 
@@ -128,7 +146,10 @@ simpler system has demonstrated the judgment the project rubric rewards.
 # week 2 code in behind this route is the "if you finish early" task.
 
 SPECIALISTS = {
-    "request": "TODO 4c: the week 2 extractor's job, as a prompt",
+    "request": ("You handle a service request for the commune. Identify what is broken, "
+                "missing, or needed and what the help desk should log and act on. "
+                "Do not invent facts, deadlines, fees, or promises. Answer in the "
+                "language of the message, under eighty words."),
     "info": ("You answer a question about a commune service, using only "
              "what the message and your instructions contain. You have no "
              "reference material, so you must never state an opening time, "
@@ -136,7 +157,13 @@ SPECIALISTS = {
              "plainly what you would have to look up, and offer to find "
              "it. Answer in the language of the message, under eighty "
              "words."),
-    "status": "TODO 4d",
+    "status": ("You handle a follow-up about a previously reported matter. "
+                "Acknowledge that the sender is asking about the current status "
+                "or progress of something already reported. Do not invent a "
+                "status, reference number, deadline, or completion date. Do not "
+                "promise a resolution. Say that the matter is being checked or "
+                "followed up with the appropriate service. Answer in the language "
+                "of the message, under eighty words."),
     "complaint": ("You acknowledge a complaint about the commune service. "
                   "Name the specific thing the sender is dissatisfied with, "
                   "so it is clear you read it. Do not defend the service, "
@@ -144,5 +171,10 @@ SPECIALISTS = {
                   "fix or a date. Say it is being escalated and to whom in "
                   "general terms. Answer in the language of the message, "
                   "under eighty words."),
-    "other": "TODO 4e",
+    "other": ("You handle a message that is not help desk business. Do not "
+              "pretend to provide advice or action that belongs to another "
+              "department or that the help desk cannot give. Do not invent "
+              "facts or promise an outcome. Say that the message needs to be "
+              "handled elsewhere or cannot be answered by the help desk. "
+              "Answer in the language of the message, under eighty words."),
 }

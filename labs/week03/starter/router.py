@@ -55,7 +55,35 @@ def classify(client, text: str, model: str = SMALL.name,
     what makes it cheap enough to be worth adding, and it is what makes its
     output inspectable.
     """
-    raise NotImplementedError("TODO 2: the classifying call")
+    t0 = time.perf_counter()
+    reply = client.chat.completions.create(
+        model=model,
+        temperature=temperature,
+        max_tokens=300,
+        response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "decision",
+                                "schema": Decision.model_json_schema()},
+        },
+        messages= [
+            {"role": "system", "content": SYSTEM_ROUTER},
+            {"role": "user", "content": text},
+        ],
+    )
+    raw = reply.choices[0].message.content
+    meta = {
+        "seconds": time.perf_counter() - t0,
+        "prompt_tokens": reply.usage.prompt_tokens,
+        "completion_tokens": reply.usage.completion_tokens,
+        "raw": raw,
+        "error": None,
+    }
+
+    try:
+        return Decision.model_validate_json(raw), meta
+    except ValidationError as exc:
+        meta["error"] = str(exc).splitlines()[0]
+        return None, meta
 
 
 # --------------------------------------------------------------------------
@@ -76,7 +104,7 @@ CONFIDENCE_FLOOR = None      # TODO 3a
 # DOES on the sender's behalf, and pick the one whose actions are easiest to
 # undo. One of the five logs a ticket, one escalates to a human, and one
 # only answers. That should decide it.
-SAFE_DEFAULT = None          # TODO 3b
+SAFE_DEFAULT = "info"          # TODO 3b
 
 
 def apply_policy(decision: Decision | None, text: str) -> Routed:
@@ -102,7 +130,41 @@ def apply_policy(decision: Decision | None, text: str) -> Routed:
     it None when the decision stood. You will count these at the checkpoint,
     and "the policy fired sometimes" is not a count.
     """
-    raise NotImplementedError("TODO 3: the policy layer")
+    if decision is None:
+        return Routed(
+            decision=Decision(
+                route=SAFE_DEFAULT,
+                confidence=0.0,
+                evidence="",
+            ),
+            applied_route=SAFE_DEFAULT,
+            policy_fired="invalid_decision",
+            evidence_ok=False,
+        )
+
+    if decision.evidence not in text:
+        return Routed(
+            decision=decision,
+            applied_route=SAFE_DEFAULT,
+            policy_fired="evidence",
+            evidence_ok=False,
+        )
+
+    if CONFIDENCE_FLOOR is not None and decision.confidence < CONFIDENCE_FLOOR:
+        return Routed(
+            decision=decision,
+            applied_route=SAFE_DEFAULT,
+            policy_fired="confidence",
+            evidence_ok=True,
+        )
+
+    return Routed(
+        decision=decision,
+        applied_route=decision.route,
+        policy_fired=None,
+        evidence_ok=True,
+    )
+   
 
 
 # --------------------------------------------------------------------------

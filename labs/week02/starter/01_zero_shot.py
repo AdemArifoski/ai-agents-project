@@ -72,11 +72,15 @@ def main() -> int:
     #
     #   Then run: python -m project.verify
     
-    gold_set = {}
+    gold_set = {
+        "cases": []
+    }
 
-    for doc, gold in zip(DOCS, GOLD):
-        gold = GOLD[doc.id]
-        gold_set[doc.id] = {
+    for doc in DOCS:
+        gold = GOLD.get(doc.id)
+        if not gold:
+            continue
+        gold_case = {
             "case_id": doc.id,
             "week_added": 2,
             "question": doc.text,
@@ -90,11 +94,11 @@ def main() -> int:
                 "with no due date because the message only says "
                 "'before the end of the month'."
             ),
-            "slice_tags": {
-                "language": doc.lang
-            }
+            "slice_tags": [
+               doc.lang
+            ]
         }
-
+        gold_set["cases"].append(gold_case)
     write_json("artifacts/goldset.json", gold_set)
                 
     return 0
