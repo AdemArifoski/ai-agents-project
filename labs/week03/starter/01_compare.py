@@ -10,12 +10,19 @@ conditions have drifted and you no longer know what you compared.
 from __future__ import annotations
 
 import argparse
+import sys
+sys.path.append("..")
+
+from week02.starter.extractor import SYSTEM_ZERO_SHOT, extract
 
 from queries import QUERIES
 from router import apply_policy, classify, respond
 from routes import (SPECIALISTS, SYSTEM_MONOLITH,
                     check_definitions_written)
 from scoring import report, score_routes
+
+
+
 
 from project.contracts import GoldCase, GoldSet
 from project.fixtures import ReplayClient, load_or_reference
@@ -74,14 +81,30 @@ def run_router(client, model=SMALL.name):
                         policy_fired=routed.policy_fired,
                         evidence_ok=routed.evidence_ok)
 
-        with rec.step("model", f"{model}:respond") as step:
-            answer, meta_a = respond(
-                client, SPECIALISTS[routed.applied_route], q.text, model)
-            step.tokens(meta_a["prompt_tokens"], meta_a["completion_tokens"])
+        if routed.applied_route == "request":
+            with rec.step("model", f"{model}:extract") as step:
+                record, meta_a = extract(
+                    client, SYSTEM_ZERO_SHOT, q.text, model)
+                step.tokens(meta_a["prompt_tokens"], meta_a["completion_tokens"])
+                step.detail(
+                    valid=record is not None,
+                    error=meta_a["error"],
+                )
 
-        rec.finish(output=answer, outcome="ok",
-                   applied_route=routed.applied_route,
-                   policy_fired=routed.policy_fired)
+            answer = record.model_dump_json() if record is not None else None
+
+        else:
+            with rec.step("model", f"{model}:respond") as step:
+                answer, meta_a = respond(
+                    client, SPECIALISTS[routed.applied_route], q.text, model)
+                step.tokens(meta_a["prompt_tokens"], meta_a["completion_tokens"])
+
+        rec.finish(
+            output=answer,
+            outcome="ok" if answer is not None else "error",
+            applied_route=routed.applied_route,
+            policy_fired=routed.policy_fired,
+        )
         routed_all.append(routed)
         metas_c.append(meta_c)
         metas_a.append(meta_a)
@@ -157,7 +180,7 @@ def main() -> int:
 
     goldset, gold_source = load_or_reference(
         "goldset.json",
-        lab="week03",
+        lab=LAB,
     )
     print(f"gold set loaded from: {gold_source}")
 
