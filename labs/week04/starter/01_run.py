@@ -48,7 +48,7 @@ def main() -> int:
 
     client = get_client(args.replay)
 
-    runs = [run_task(client, t, model=args.model, max_steps=args.max_steps)
+    runs = [run_task(client, t, model=args.model, max_steps=args.max_steps, no_tools=args.no_tools,)
             for t in TASKS]
     board = score_all(TASKS, runs)
     print(report(board, runs))
