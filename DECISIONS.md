@@ -364,3 +364,60 @@ What I would build first to bound that, and the week I expect to build it in:
 have found and not yet fixed, with the week you expect to fix it, is exactly
 what a security backlog is.]
 
+
+
+
+## Week 5
+
+**Run conditions.** model: [ qwen2.5:7b ] | framework: Pydantic AI [v2.55.0] |
+runs per architecture: [ 3 ] | served locally | date: [2026-10-17] |
+table from: [ my own runs ]
+
+### 1. The plan schema
+
+What I tried first, and what happened:
+
+[I did not try a nested list of Step objects]
+
+What I shipped, and why it is shaped that way:
+
+[I used a Pydantic Plan model with three fields: goal: str, steps: list[str], and suspect_file: str. This keeps the plan structured and easy to validate without adding unnecessary nesting. The plan describes the goal, the steps the agent intends to take, and the suspected source file.]
+
+### 2. The validator
+
+| check | what it catches |
+| the plan must contain 2-6 steps | plans that are too shor or too long |
+| the suspected filename must be in KNOWN_FILES| invented or disallowed filenames |
+| at least one step must say to run or execute tests| plans that don't include test verification |
+| steps must not propose editing files| attempts to change tests instead of fixting the source code|
+
+On a failed check my system [ refuses ], because [ this prevents an invalid plan from reaching the fixer].
+
+### 3. The three-way table
+
+| architecture | green | tokens (mean) | seconds (mean) |
+| A baseline | 3/3 | 14740 | 20.7 |
+| B planner | 0/3 | 709 | 4.3 |
+| C planner + reviewer | 0/3 | 1382 | 4.3 |
+
+### 4. Why the baseline fails
+
+[The baseline passed all three runs. Neither planner-based architecture produced a passing result in these runs. The planner-based approaches used fewer tokens and less time, but they did not solve the task successfully.]
+
+### 5. The reviewer
+
+Verdicts across my runs: [ 0 ] approve, [ 2 ] reject.
+
+Would I ship it: [ No, not yet]. Extra cost: [1,382 − 709 =  673 ] tokens, [ 4.3 ] seconds per run.
+
+The case where it would earn its cost:
+
+[In my runs, the reviewer added only about 673 tokens on average compared with the planner alone, with no visible increase in average time at the reported precision. However, it did not make the overall architecture pass the tests. Its value would be preventing an incorrect change from being accepted, not simply making the test results green.]
+
+### 6. What my verifier cannot catch
+
+[The test suite cannot catch every possible bug because it only checks situations covered by existing tests. For example, changing the off-peak start hour from 20 to 19 could make the tests pass while incorrectly giving the discount to bookings at 19:00. If no test checks that situation, the suite could be green even though the code is wrong. This shows that passing tests does not always mean a fix is correct.]
+
+### Deferred
+
+[ Homework, Task B, the refactoring ]

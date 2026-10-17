@@ -1,0 +1,108 @@
+{
+  "rows": [
+    {
+      "architecture": "A baseline",
+      "green": true,
+      "tool_calls": 30,
+      "tokens": 32484,
+      "seconds": 45.2
+    },
+    {
+      "architecture": "B planner",
+      "green": false,
+      "plan_ok": false,
+      "plan_problems": [
+        "Suspected file is not an allowed source file: booking_discounts.py",
+        "Plan must include a step to run the tests."
+      ],
+      "applied": "not attempted",
+      "verdict": null,
+      "verdict_reason": null,
+      "fix": "none",
+      "tokens": 372,
+      "seconds": 2.4
+    },
+    {
+      "architecture": "C planner+reviewer",
+      "green": false,
+      "plan_ok": false,
+      "plan_problems": [
+        "Suspected file is not an allowed source file: booking_discounts.py",
+        "Plan must include a step to run the tests."
+      ],
+      "applied": "not attempted",
+      "verdict": null,
+      "verdict_reason": null,
+      "fix": "none",
+      "tokens": 355,
+      "seconds": 1.9
+    },
+    {
+      "architecture": "A baseline",
+      "green": false,
+      "tool_calls": 14,
+      "tokens": 11011,
+      "seconds": 16.5
+    },
+    {
+      "architecture": "B planner",
+      "green": false,
+      "plan_ok": false,
+      "plan_problems": [
+        "Suspected file is not an allowed source file: booking_discount.py"
+      ],
+      "applied": "not attempted",
+      "verdict": null,
+      "verdict_reason": null,
+      "fix": "none",
+      "tokens": 365,
+      "seconds": 2.2
+    },
+    {
+      "architecture": "C planner+reviewer",
+      "green": false,
+      "plan_ok": false,
+      "plan_problems": [
+        "Suspected file is not an allowed source file: booking_discounts.py",
+        "Plan must not propose editing tests: Run all tests to ensure no unintended changes were made"
+      ],
+      "applied": "not attempted",
+      "verdict": null,
+      "verdict_reason": null,
+      "fix": "none",
+      "tokens": 362,
+      "seconds": 2.0
+    },
+    {
+      "architecture": "A baseline",
+      "green": false,
+      "tool_calls": 22,
+      "tokens": 21314,
+      "seconds": 17.5
+    },
+    {
+      "architecture": "B planner",
+      "green": false,
+      "plan_ok": true,
+      "plan_problems": [],
+      "applied": "applied",
+      "verdict": null,
+      "verdict_reason": null,
+      "fix": "booking.py: start_hour: int = 10 -> start_hour: int = 20",
+      "tokens": 1234,
+      "seconds": 4.8
+    },
+    {
+      "architecture": "C planner+reviewer",
+      "green": false,
+      "plan_ok": true,
+      "plan_problems": [],
+      "applied": "not attempted",
+      "verdict": "reject",
+      "verdict_reason": "Changing the start_hour without a justification introduces incorrect behavior.",
+      "fix": "booking.py: start_hour: int = 10 -> start_hour: int = 20",
+      "tokens": 1792,
+      "seconds": 5.2
+    }
+  ]
+}
