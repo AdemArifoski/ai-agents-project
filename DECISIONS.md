@@ -421,3 +421,66 @@ The case where it would earn its cost:
 ### Deferred
 
 [ Homework, Task B, the refactoring ]
+
+
+
+
+## Week 6
+
+**Run conditions.** MCP SDK version: [ 2.0.0rcl ] | specification revision: 2026-07-28 | model: [ ] | served locally | date: [2026-11-07]
+
+### 1. The handle
+
+Format I chose: [ fact- + a cryptographically randon URL-safe token]
+
+A guessable handle would expose: [ the existence and approximate number
+of stored facts, and potentially allow unauthorized access to another's 
+data by guessing sequential IDs such as fact-0006]
+
+### 2. Conflict and retention
+
+- A write that contradicts an older fact: [keep both], because [ preserving the history of changes avoids losing context]
+- How long a record lives: [ indefinitely by default until explicitly deleted using forget(handle)], because [ because this implementation has no automatic expiration mechanism ]
+
+[Nothing expires by default. If you kept it that way, say so explicitly
+rather than leaving it unsaid. An undeclared retention policy is still a
+retention policy.]
+
+### 3. What k costs
+
+k = [ 3 ]. Tokens added per call: [ at most 3 facts are returned, so the token cost depends on the lenght of those facts ].
+
+At four hundred facts in the store, this design [ must scan all facts
+belonging to the specified subject and score them before returing the top 3. This becomes slower as the store grows].
+
+### 4. Memory off against memory on
+
+| | tokens | turns to finish |
+| memory off | | |
+| memory on | | |
+
+[The interesting result is usually that memory costs more tokens per call
+and fewer calls per task. Whether that is a win depends on the task, and
+saying which way it went for you is the entry.]
+
+### 5. The protocol, at the wire
+
+| server mode | status | Mcp-Session-Id | answered |
+| stateless_http=True | 200 | None| True |
+| stateless_http=False | 400 | de886488c0f142a9b9328a2c72d658c1 | False|
+
+The error the session-mode server returned, quoted exactly:
+
+[ body: {"jsonrpc":"2.0","id":null,"error":{"code":-32600,"message":"Bad Request: Missing session ID"}} ]
+
+Why the two-server handle demonstration does not prove this on its own:
+
+[ The two-server demonstration only proves that both servers can access the same shared memory file. It does not prove MCP is stateless, because the same result could happen with a session-based protocol. ]
+
+### 6. What forget does not reach
+
+[When a resident asks to delete something, the fact is removed from the memory store, so it will no longer be retrieved in future calls. However, information already present in an ongoing conversation remains in its messages. Therefore, deleting a memory does not automatically erase information from previous conversations.]
+
+### Deferred
+
+[ Memory on/off. Homework, bzuld the A2A channel, add an authorization check on the handle ]

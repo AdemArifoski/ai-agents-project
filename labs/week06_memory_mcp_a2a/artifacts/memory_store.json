@@ -1,0 +1,14 @@
+{
+  "facts": [
+    {
+      "subject": "A. Muller",
+      "kind": "identity",
+      "text": "A. Muller is the subject of this case.",
+      "handle": "fact-qjQKOaw0yEdkHRlDsMMX6joU6CKV_vKR",
+      "written_at": "2026-11-05T14:01:19Z"
+    }
+  ],
+  "cases": {
+    "case-9db039f319c9": "A. Muller"
+  }
+}

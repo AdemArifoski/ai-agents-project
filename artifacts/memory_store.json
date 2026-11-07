@@ -1,0 +1,22 @@
+{
+  "facts": [
+    {
+      "subject": "A. Muller",
+      "kind": "identity",
+      "text": "A. Muller is the subject of this case.",
+      "handle": "fact-OcTozqCnbCE1QyfujcbQRRfd8BJkll6E",
+      "written_at": "2026-11-05T14:41:33Z"
+    },
+    {
+      "subject": "A. Muller",
+      "kind": "identity",
+      "text": "A. Muller is the subject of this case.",
+      "handle": "fact-BI05uvWYKUOAm3frw1QR04YMqTNOAf5M",
+      "written_at": "2026-11-05T14:51:37Z"
+    }
+  ],
+  "cases": {
+    "case-3ca06e70c52d": "A. Muller",
+    "case-ce325f9295b6": "A. Muller"
+  }
+}
