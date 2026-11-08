@@ -484,3 +484,72 @@ Why the two-server handle demonstration does not prove this on its own:
 ### Deferred
 
 [ Memory on/off. Homework, bzuld the A2A channel, add an authorization check on the handle ]
+
+
+
+
+## Week 7
+
+**Run conditions.** embedding model: [ nomic-embed-text:latest ] | dimensionality: [ 768 ] | chunk size: [ 600 ] | overlap: [ 80 ] | k: 5 | store: Chroma | date: [2026-11-08] | table from: [my own index]
+
+### 1. The chunker
+
+size [ 600 ], overlap [ 80 ], because [ this provides a balance between retrieveing focused passages and keeping enough context for the complete answer to appear within a chunk. The overlap also reduces the risk of losing important information at chunk boundaraies. Each chunk retains its document ID and section heading, allowing the same gold set to work accross different chunk sizes].
+
+### 2. The index
+
+[ 95 ] chunks, [ 768 ] dimensions, [ 30 ] seconds for one full indexing run.
+
+### 3. The table
+
+| qid | dense rank | keyword rank | recall@5 | tags |
+| Q01 | 1          | 2            | 1.00     | distractor, superseded |
+| Q02 | 1          | 1            | 1.00     | rare-token |
+| Q03 | 1          | 1            | 1.00     | easy |
+| Q04 | 1          | 1            | 1.00     | vocabulary |
+| Q05 | 22         | 7            | 0.00     | multi-document |
+| Q06 | 1          | 16           | 1.00     | negation |
+| Q07 | 1          | 3            | 1.00     | easy |
+| Q08 | 1          | 1            | 1.00     | numeric |
+| Q09 | 1          | 2            | 1.00     | distractor |
+| Q10 | 1          | 1            | 1.00     | easy |
+| Q11 | 1          | 5            | 1.00     | easy |
+| Q12 | unanswerable | -          | -        | unanswerable |
+
+### 4. Good pipeline, or easy task?
+
+[This is stronger evidence that the retrieval task is relatively easy than that the pipeline is particularly good, because ten of eleven answerable questions ranking first suggests that the questions and corpus are relatively straightforward for the retrievers.]
+
+### 5. The question that fails on both
+
+Question: [  Q12 ]. Dense rank [ unanswerable  ], keyword rank [ - ].
+
+Why it fails:
+
+[The corpus does not contain any information about free wifi in the communal park. Therefore, neither retriever can find a relevant passage to answer the question.]
+
+Would any chunk size fix it? [ No ], because [ because changing the chunk size only changes how existing information is divided into passages. It cannot create information that is missing from the corpus ].
+
+### 6. The gold-set correction
+
+The note said: [ The query carries the string RB-1140b. Rare, exact, and 
+semantically empty, so dense retrieval is the wrong tool for it
+and keyword search is the right one. Note that a superseded page
+carries the near-identical string RB-1140a. ]
+
+My measurement said: [ In the recorded run, dense retrieval ranked the correct section first, while keyword retrieval ranked it 14th. In my live run, both dense and keyword retrieval ranked the correct section first. Therefore, the results contradict the original assumption that keyword retrieval performs better on rare exact tokens. ]
+
+The corrected note:
+
+[ The query contains the rare exact token RB-1140b. In the recorded
+run, dense retrieval ranks the correct section first while keyword
+search ranks it 14th. However, in the live run, both dense and 
+keyword retrieval rank the correct section first. This shows that 
+the original assumption that keyword search performs better on rare 
+exact tokens is not consistently supported by the measurements. ]
+
+[What it cost you to find this: one measurement. What it would have cost to not find it: a stretch exercise built on a false premise, and a term in which nobody noticed.]
+
+### Deferred
+
+[ Homework ]
