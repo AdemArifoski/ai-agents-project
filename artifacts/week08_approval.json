@@ -1,0 +1,22 @@
+{
+  "case_id": "RB-2026-0042",
+  "verdict": "edit",
+  "by": "a.muller",
+  "submitted": true,
+  "decision": "edit",
+  "arguments": {
+    "fee_eur": 55.0,
+    "period": "year"
+  },
+  "evidence": [
+    "The resident parking vignette costs 60 EUR a year."
+  ],
+  "events": [
+    "search:attempt:1:ok",
+    "search:outcome:ok",
+    "fees:attempt:1:NotImplementedError",
+    "fees:outcome:degraded",
+    "draft:degraded",
+    "gate:edit:a.muller"
+  ]
+}
