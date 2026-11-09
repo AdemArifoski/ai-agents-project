@@ -553,3 +553,55 @@ exact tokens is not consistently supported by the measurements. ]
 ### Deferred
 
 [ Homework ]
+
+
+
+
+
+## Week 8
+
+**Run conditions.** fault seed: [ ] | attempts: [ 3 ] | base delay: [ 0.05 s ] |
+max elapsed: [ 3.0 s] | LangGraph [version] | date: [2026-11-09]
+
+### 1. Which errors are retryable
+
+Retryable: [ ToolTimeout, RateLimited, ServerError]
+
+Deliberately NOT retryable: [ContractDrift ], because [ a renamed field is a contract problem, not a transient network problem. Retrying cannot repait it ].
+
+[ Retrying a successful response with an incorrect schema simply produces another valid but incompatible response, wasting time and potentially hiding the actual integration problem. ]
+
+### 2. The fault matrix
+
+|           | correct | WRONG | degraded | failed |
+| baseline  | 1     | 0        | 2        | 5 |
+| hardened  | 0     | 0        | 7        | 1 |
+
+What hardening actually bought:
+
+[ Hardening reduced failed cases from 5 to 1, while keeping confidently incorrect answers at zero. It did not increase correctness, it made the system more capable of admitting when it could not provide a complete answer. ]
+
+### 3. The empty result
+
+An empty result is not an error. My pipeline treats it as [ missing evidence and attempts the keyword fallback ], because [ a successful search returning no results does not mean that supporting information exists ].
+
+### 4. The gate
+
+Gated step: [submit ]. The others are not gated because [ searching, retrieving fees and drafting are preparatory operations. Submitting a case has an external, consequential side effect and requires human authorization ].
+
+An unanswered approval after the timeout: [ The submission remains unapproved and does not execute ]. That protects [ the user from an unintended external action ].
+
+The approval payload carries [ Case ID, exact submission arguments, supporting evidence, degraded status, missing information] and deliberately does not carry [ an automatically assumed approval or an instruction to submit without human authorization].
+
+### 5. The duplicate the state does not show
+
+I put a side effect above the interrupt. It executed [ ] times. The recorded
+state showed it [ ] times.
+
+What that means for anything my gated node does before it asks:
+
+[...]
+
+### Deferred
+
+[ Duplicate the state, homework]
